@@ -1,0 +1,9 @@
+Place these HD images here:
+
+1. ram_charan.png     — AI generated image of Ram's lotus feet (square, min 1024x1024)
+2. temple_bg.png      — Temple background (portrait, min 1080x1920)
+3. icon.png           — App icon (1024x1024)
+4. splash.png         — Splash screen (1284x2778)
+5. adaptive-icon.png  — Android adaptive icon (1024x1024)
+
+All images should be high resolution PNG files.

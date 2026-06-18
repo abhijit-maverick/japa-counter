@@ -1,0 +1,7 @@
+Place these audio files here:
+
+1. ram_chant.mp3   — Short Ram chant sound played on each jap (1-2 seconds)
+2. bg_music.mp3    — Looping meditative background music (2-5 minutes, will loop)
+
+Recommended: Download royalty-free bhajan/mantra audio from YouTube Audio Library
+or record your own.
