@@ -1,10 +1,12 @@
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet } from 'react-native';
-import { COLORS, scale, moderateScale } from '../../constants/theme';
+import { Text } from 'react-native';
+import { COLORS, scale } from '../../constants/theme';
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   return (
-    <Text style={{ fontSize: scale(22), opacity: focused ? 1 : 0.45 }}>{label}</Text>
+    <Text style={{ fontSize: scale(22), opacity: focused ? 1 : 0.45 }}>
+      {label}
+    </Text>
   );
 }
 
@@ -25,7 +27,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textHint,
         tabBarLabelStyle: {
-          fontSize: moderateScale(9),
+          fontSize: scale(9),
           letterSpacing: 1,
           fontWeight: '600',
           marginTop: 2,
@@ -36,32 +38,30 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'जप',
-          tabBarIcon: ({ focused }) => <TabIcon label="🪷" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon label="🪷" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: 'इतिहास',
-          tabBarIcon: ({ focused }) => <TabIcon label="📿" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon label="📿" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="streak"
         options={{
           title: 'अनुक्रम',
-          tabBarIcon: ({ focused }) => <TabIcon label="🔥" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon label="🔥" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'सेटिंग',
-          tabBarIcon: ({ focused }) => <TabIcon label="⚙️" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon label="⚙️" focused={focused} />,
         }}
       />
     </Tabs>
   );
 }
-
-function moderateScale(size: number) { return size; }
