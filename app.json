@@ -24,17 +24,9 @@
     },
     "plugins": [
       "expo-router",
-      "expo-av",
-      [
-        "expo-speech-recognition",
-        {
-          "microphonePermission": "Allow Jai Shri Ram to use microphone for वाणी जप",
-          "speechRecognitionPermission": "Allow Jai Shri Ram to recognise your voice for वाणी जप"
-        }
-      ]
+      "expo-av"
     ],
     "scheme": "japacounter",
-    "newArchEnabled": true,
     "extra": {
       "eas": {
         "projectId": "5ad62d3e-8071-481b-a4e2-0567088baaa7"
