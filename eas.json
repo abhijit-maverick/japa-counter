@@ -7,11 +7,12 @@
     "preview": {
       "android": {
         "buildType": "apk",
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+        "image": "ubuntu-24.04-jdk-17-ndk-r27b"
       },
       "env": {
         "EXPO_NO_DOCTOR": "1",
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "NODE_VERSION": "22"
       }
     }
   }
