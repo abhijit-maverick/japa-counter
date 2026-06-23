@@ -10,14 +10,29 @@ import {
 } from 'expo-speech-recognition';
 
 const RAM_TRIGGERS = [
-  'ram', 'raam', 'rama', 'shri ram', 'jai ram',
-  'jai shri ram', 'siyaram', 'hare ram', 'raghupati',
-  'राम', 'जय राम', 'श्री राम', 'सियाराम',
+  'jai shri ram', 'jai shree ram', 'shri ram', 'shree ram',
+  'jai ram', 'jai raam', 'hare ram', 'hey ram',
+  'siyaram', 'sita ram', 'sitaram', 'raghupati',
+  'ram', 'raam', 'rama',
+  'जय श्री राम', 'श्री राम', 'जय राम', 'सियाराम', 'सीताराम',
+  'राम',
 ];
 
-function isRam(text: string) {
-  const lower = text.toLowerCase().trim();
-  return RAM_TRIGGERS.some(t => lower.includes(t));
+const SORTED_TRIGGERS = [...RAM_TRIGGERS].sort((a, b) => b.length - a.length);
+
+function countRamOccurrences(transcript: string): number {
+  let text = ' ' + transcript.toLowerCase().trim() + ' ';
+  let count = 0;
+  for (const trigger of SORTED_TRIGGERS) {
+    const t = ' ' + trigger + ' ';
+    let idx = text.indexOf(t);
+    while (idx !== -1) {
+      count++;
+      text = text.slice(0, idx) + ' '.repeat(t.length) + text.slice(idx + t.length);
+      idx = text.indexOf(t);
+    }
+  }
+  return count;
 }
 
 export default function App() {
@@ -25,34 +40,53 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [lastHeard, setLastHeard] = useState('');
   const [log, setLog] = useState<string[]>([]);
-  const cooldown = useRef(false);
   const isListening = useRef(false);
+  const maxSeenInPhrase = useRef(0);
+  const sessionTotal = useRef(0);
 
   useSpeechRecognitionEvent('result', (event) => {
     const transcript = event.results?.[0]?.transcript || '';
+    const isFinal = (event as any).isFinal ?? false;
     if (!transcript) return;
+
     setLastHeard(transcript);
-    addLog('👂 ' + transcript);
-    if (!cooldown.current && isRam(transcript)) {
-      cooldown.current = true;
-      setCount(c => c + 1);
+    const total = countRamOccurrences(transcript);
+
+    if (total > maxSeenInPhrase.current) {
+      const newOnes = total - maxSeenInPhrase.current;
+      maxSeenInPhrase.current = total;
+      sessionTotal.current += newOnes;
+      setCount(c => c + newOnes);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      addLog('✅ राम counted!');
-      setTimeout(() => { cooldown.current = false; }, 800);
+      addLog(`✅ +${newOnes} (max: ${total}) — "${transcript}"`);
+    } else if (total < maxSeenInPhrase.current) {
+      // Engine revised downward — ignore, just log it
+      addLog(`↩ revised down to ${total} — ignored`);
+    } else {
+      addLog(`… "${transcript}"`);
+    }
+
+    if (isFinal) {
+      // Phrase ended — reset max for next phrase
+      addLog(`🔚 phrase end (counted ${maxSeenInPhrase.current})`);
+      maxSeenInPhrase.current = 0;
     }
   });
 
   useSpeechRecognitionEvent('end', () => {
-    if (isListening.current) setTimeout(() => startListening(false), 300);
+    maxSeenInPhrase.current = 0;
+    if (isListening.current) setTimeout(() => startListening(false), 50);
   });
 
   useSpeechRecognitionEvent('error', (e) => {
     addLog('⚠️ ' + e.error);
-    if (isListening.current) setTimeout(() => startListening(false), 1000);
+    maxSeenInPhrase.current = 0;
+    const isPause = e.error === 'no-speech' || e.error === 'speech-timeout';
+    if (isListening.current) setTimeout(() => startListening(false), isPause ? 50 : 1000);
   });
 
   function addLog(msg: string) {
-    setLog(prev => [msg, ...prev].slice(0, 6));
+    setLog(prev => [msg, ...prev].slice(0, 10));
   }
 
   async function startListening(requestPerm = true) {
@@ -61,13 +95,15 @@ export default function App() {
         const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
         if (!perm.granted) { addLog('❌ No permission'); return; }
       }
+      maxSeenInPhrase.current = 0;
+      sessionTotal.current = 0;
       ExpoSpeechRecognitionModule.start({
         lang: 'hi-IN',
         interimResults: true,
         continuous: true,
         requiresOnDeviceRecognition: false,
         addsPunctuation: false,
-        contextualStrings: ['राम', 'ram', 'raam', 'jai ram', 'shri ram'],
+        contextualStrings: ['राम', 'ram', 'raam', 'jai ram', 'shri ram', 'jai shri ram'],
       });
       isListening.current = true;
       setListening(true);
@@ -80,6 +116,7 @@ export default function App() {
   function stopListening() {
     isListening.current = false;
     setListening(false);
+    maxSeenInPhrase.current = 0;
     try { ExpoSpeechRecognitionModule.stop(); } catch (e) {}
     addLog('⏹️ Stopped');
   }
@@ -88,7 +125,7 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <Text style={styles.title}>॥ जय श्री राम ॥</Text>
-        <Text style={styles.subtitle}>वाणी जप टेस्ट</Text>
+        <Text style={styles.subtitle}>वाणी जप टेस्ट v5 — max tracking</Text>
         <Text style={styles.count}>{count}</Text>
         {lastHeard ? <Text style={styles.heard}>"{lastHeard}"</Text> : null}
         <View style={styles.btnRow}>
@@ -99,7 +136,10 @@ export default function App() {
             <Text style={styles.btnText}>{listening ? '⏹ Stop' : '🎙️ Start'}</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => { setCount(0); setLog([]); setLastHeard(''); }}>
+        <TouchableOpacity onPress={() => {
+          setCount(0); setLog([]); setLastHeard('');
+          maxSeenInPhrase.current = 0; sessionTotal.current = 0;
+        }}>
           <Text style={styles.reset}>Reset</Text>
         </TouchableOpacity>
         <View style={styles.logBox}>
